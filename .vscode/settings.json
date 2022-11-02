@@ -9,7 +9,7 @@
             "port": 3306,
             "driver": "MariaDB",
             "name": "connection",
-            "database": "social_network",
+            "database": "parse_networks_stats",
             "username": "meskalito89",
             "password": "37996422"
         }
