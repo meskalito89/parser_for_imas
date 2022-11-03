@@ -23,11 +23,6 @@ parser.add_argument(
     """
 )
 
-args = parser.parse_args()
-
-
-
-engine = create_engine(args.sql_config_file)
 Base = declarative_base()
 
 class Group(Base):
@@ -55,8 +50,11 @@ class Reaction_vk(Base):
     views = Column(Integer)
 
 
-# if __name__ == "__main__":
-#     engine = get_engine()
-#     # Group.__table__.create(engine)
-#     # Post.__table__.create(engine)
-#     Reaction_vk.__table__.create(engine)
+if __name__ == "__main__":
+
+    args = parser.parse_args()
+    engine = create_engine(args.sql_config_file)
+    engine = get_engine()
+    Group.__table__.create(engine)
+    Post.__table__.create(engine)
+    Reaction_vk.__table__.create(engine)

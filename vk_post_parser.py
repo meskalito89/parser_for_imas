@@ -9,15 +9,16 @@ from datetime import datetime
 from random import shuffle
 import json
 import argparse
+import sys
 
-parser = argparse.ArgumentParser(description="""Этот парсер просматривает канаалы из базы данных
+parser = argparse.ArgumentParser(description="""Этот парсер просматривает каналы из базы данных
  на наличие новых постов.""")
 parser.add_argument("--sql_query",
-    help="""Запрос для выбора ссылок на каналы. По умолчанию select * from \`group\`;""",
-    default="select * from \`group\`;"
+    help="""Запрос для выбора групп. По умолчанию select * from group;""",
+    default="select * from `group`;"
     )
 parser.add_argument("--vk_config_file",
-    help="""Путь к файлу с токеном, логином и паролем в формате json
+    help="""Путь к файлу с токеном, логином и паролем от Вконтакте в формате json
     пример.\n
         {
             "token": "token",
@@ -39,16 +40,15 @@ parser.add_argument(
     }
     """
 )
-
+parser.add_argument(
+    '--limit',
+    help="""Если в сканируемом канале нет ни одного поста,
+    то limit задает сколько крайних постов нужно сохранить в базу.
+    По умолчанию 10""",
+    type=int,
+    default=10
+)
 args = parser.parse_args()
-
-def get_vk_config(path_to_file):
-    with open(path_to_file) as config_file:
-        config = json.loads(config_file.read())
-        return config
-
-config = get_vk_config(args.vk_config_file)
-vk_session = vk_api.VkApi(**config)
 
 def get_engine(path_to_sql_conf_json):
 
@@ -69,7 +69,17 @@ def get_engine(path_to_sql_conf_json):
         engine = create_engine(url)
         return engine
 
-engine = get_engine(args.sql_config_file)
+if __name__ == "__main__":
+    engine = get_engine(args.sql_config_file)
+
+def get_vk_config(path_to_file):
+    with open(path_to_file) as config_file:
+        config = json.loads(config_file.read())
+        return config
+
+if __name__ == "__main__":
+    config = get_vk_config(args.vk_config_file)
+    vk_session = vk_api.VkApi(**config)
 
 def convert_link_to_id(link):
     group_name = link.split("/")[-1]
@@ -111,11 +121,6 @@ def get_all_posts_from_database():
     with Session(engine) as session:
         return session.query(Post).all()
 
-def get_owner_id_post_id_for_sarch_method():
-    all_posts = get_all_posts_from_database()
-    post_ids = [f"{str(post.owner_id)}_{str(post.id)}" for post in all_posts]
-    return post_ids
-
 def get_groups():
     with engine.connect() as conn:
         groups = conn.execute(args.sql_query)
@@ -148,7 +153,7 @@ def is_post_in_database(post):
             return True
         return False
 
-def get_last_posts(channel_id, limit=20):
+def get_last_posts(channel_id, limit=args.limit):
     tools = vk_api.VkTools(vk_session)
     wall = tools.get_all_iter('wall.get', 10, {'owner_id': channel_id})
     posts = []
@@ -177,6 +182,10 @@ def save_posts(posts:list[dict]) -> None:
 
 
 if __name__ == '__main__':
+    if len(sys.argv)==1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+
     groups = get_groups()
     shuffle(groups)
     for group in groups:
