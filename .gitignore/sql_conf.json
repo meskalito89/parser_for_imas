@@ -1,8 +1,0 @@
-{
-    "database_type": "mariadb",
-    "server": "192.168.1.4",
-    "port": 3306,
-    "database": "parse_networks_stats",
-    "username": "meskalito89",
-    "password": "37996422"
-}
