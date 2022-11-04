@@ -3,10 +3,12 @@ from sqlalchemy.sql import func
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects import mysql
 from json import loads
+import sys
 import argparse
 
 parser = argparse.ArgumentParser(description="""
-    Скрипт создает таблицы в базе данных для груп постов и статистики постов
+    Скрипт создает таблицы для парсинга ВК. Группы, посты, и история постов.
+   groups_vk,  posts_vk, reactions_vk
 """)
 
 parser.add_argument(
@@ -20,41 +22,45 @@ parser.add_argument(
         "username": "username",
         "password": "password"
     }
-    """
+    """,
+    required=True
 )
+
+if len(sys.argv)==1:
+    parser.print_help(sys.stderr)
+    sys.exit(1)
 
 Base = declarative_base()
 
-class Group(Base):
-    __tablename__ = 'group'
+class Groups_vk(Base):
+    __tablename__ = 'groups_vk'
     id = Column(mysql.BIGINT, primary_key=True)
     link = Column(String(50), nullable=False)
 
-class Post(Base):
-    __tablename__ = "post"
+class Posts_vk(Base):
+    __tablename__ = "posts_vk"
     id = Column(Integer, primary_key=True)
-    owner_id = Column(mysql.BIGINT, ForeignKey('group.id'), primary_key=True)
+    owner_id = Column(mysql.BIGINT, ForeignKey('groups_vk.id'), primary_key=True)
     date = Column(mysql.BIGINT)
     from_id = Column(mysql.BIGINT)
     text = Column(Text)
 
-class Reaction_vk(Base):
-    __tablename__ = 'reaction_vk'
+class Reactions_vk(Base):
+    __tablename__ = 'reactions_vk'
     id = Column(Integer, primary_key=True)
-    post_id = Column(Integer, ForeignKey("post.id"))
-    owner_id = Column(mysql.BIGINT, ForeignKey('post.owner_id'))
+    post_id = Column(Integer, ForeignKey("posts_vk.id"))
+    owner_id = Column(mysql.BIGINT, ForeignKey('posts_vk.owner_id'))
     comments = Column(Integer)
     likes = Column(Integer)
     reposts = Column(Integer)
     date = Column(DateTime(timezone=True), server_default=func.now())
     views = Column(Integer)
 
-
 if __name__ == "__main__":
-
     args = parser.parse_args()
     engine = create_engine(args.sql_config_file)
     engine = get_engine()
-    Group.__table__.create(engine)
-    Post.__table__.create(engine)
+    Groups_vk.__table__.create(engine)
+    Posts_vk.__table__.create(engine)
     Reaction_vk.__table__.create(engine)
+

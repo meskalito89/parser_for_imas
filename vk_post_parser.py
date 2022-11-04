@@ -1,4 +1,4 @@
-from models.vk_models import Group, Post, Reaction_vk
+from models.vk_models import Groups_vk, Posts_vk, Reactions_vk
 import sqlalchemy
 from sqlalchemy import Column, String, Integer, Table, ForeignKey, DateTime, Text, create_engine
 import vk_api
@@ -14,8 +14,9 @@ import sys
 parser = argparse.ArgumentParser(description="""Этот парсер просматривает каналы из базы данных
  на наличие новых постов.""")
 parser.add_argument("--sql_query",
-    help="""Запрос для выбора групп. По умолчанию select * from group;""",
-    default="select * from `group`;"
+    help="""Запрос для выбора групп. По умолчанию select * from groups_vk;
+    """,
+    default="select * from groups_vk;",
     )
 parser.add_argument("--vk_config_file",
     help="""Путь к файлу с токеном, логином и паролем от Вконтакте в формате json
@@ -26,6 +27,7 @@ parser.add_argument("--vk_config_file",
             "password": "password"
         }
     """,
+    required=True
     )
 parser.add_argument(
     "--sql_config_file",
@@ -38,16 +40,18 @@ parser.add_argument(
         "username": "username",
         "password": "password"
     }
-    """
+    """,
+    required=True
 )
 parser.add_argument(
     '--limit',
-    help="""Если в сканируемом канале нет ни одного поста,
+    help="""Если в базе нет ни одного поста сканируемой группы, 
     то limit задает сколько крайних постов нужно сохранить в базу.
     По умолчанию 10""",
     type=int,
     default=10
 )
+
 args = parser.parse_args()
 
 def get_engine(path_to_sql_conf_json):
@@ -80,7 +84,7 @@ def get_vk_config(path_to_file):
 if __name__ == "__main__":
     config = get_vk_config(args.vk_config_file)
     vk_session = vk_api.VkApi(**config)
-
+ 
 def convert_link_to_id(link):
     group_name = link.split("/")[-1]
     response = vk_session.method("utils.resolveScreenName", {'screen_name': group_name})
@@ -91,7 +95,6 @@ def is_post_todays(post):
     today = datetime.today()
     post_date = datetime.fromtimestamp(post.get('date'))
     if today.year == post_date.year and today.month == post_date.month and today.day == post_date.day:
-        print(post.get("id"), post_date)        
         return True
     return False
 
@@ -108,12 +111,13 @@ def get_todays_posts(channel_id):
     return posts
 
 def add_reaction_in_session(post, sql_session):
-    new_reaction = Reaction_vk(
+    new_reaction = Reactions_vk(
         post_id = post.get('id'),
         owner_id = post.get('owner_id'),
         likes = post.get('likes', dict()).get('count', 0),
         reposts = post.get('reposts', dict()).get('count', 0),
-        views = post.get('views', dict()).get('count', 0)
+        views = post.get('views', dict()).get('count', 0),
+        comments = post.get('comments', dict()).get('count', 0),
     )
     sql_session.add(new_reaction)
 
@@ -145,15 +149,16 @@ def save_post(post):
         
 def is_post_in_database(post):
     with Session(engine) as session:
-        posts = session.query(Post.owner_id).all()
+        posts = session.query(Posts_vk.owner_id).all()
         exist = session.query(
-            Post.id, Post.owner_id).filter_by(owner_id=post.get('owner_id'), id=post.get("id")
+            Posts_vk.id, Posts_vk.owner_id).filter_by(owner_id=post.get('owner_id'), id=post.get("id")
             ).all()
         if exist:
             return True
         return False
 
 def get_last_posts(channel_id, limit=args.limit):
+    
     tools = vk_api.VkTools(vk_session)
     wall = tools.get_all_iter('wall.get', 10, {'owner_id': channel_id})
     posts = []
@@ -168,7 +173,7 @@ def get_last_posts(channel_id, limit=args.limit):
 def save_posts(posts:list[dict]) -> None:
     with Session(engine) as session:
         for post in posts:
-            new_post = Post(
+            new_post = Posts_vk(
                 id = post.get('id'),
                 owner_id = post.get('owner_id'),
                 date = post.get('date'),

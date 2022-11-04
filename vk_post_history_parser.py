@@ -1,7 +1,7 @@
 import vk_api
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
-from models.vk_models import Post, Reaction_vk
+from models.vk_models import Posts_vk, Reactions_vk
 from pdb import set_trace
 from vk_api.execute import VkFunction
 from vk_post_parser import get_vk_config, add_reaction_in_session
@@ -13,8 +13,9 @@ import json
 parser = argparse.ArgumentParser(description="""Этот парсер собирает статистику постов.
  Количество лайков, просмотров, и репостов.""")
 parser.add_argument("--sql_query",
-    help="""Запрос для выбора постов. По умолчанию select * from post;""",
-    default="select * from post;"
+    help="""Запрос для выбора постов. По умолчанию select * from posts_vk;
+    """,
+    default="select * from posts_vk;"
     )
 
 parser.add_argument("--vk_config_file",
@@ -26,6 +27,7 @@ parser.add_argument("--vk_config_file",
             "password": "password"
         }
     """,
+    required=True
     )
 
 parser.add_argument(
@@ -39,7 +41,8 @@ parser.add_argument(
         "username": "username",
         "password": "password"
     }
-    """
+    """,
+    required=True
 )
 
 def get_engine(path_to_sql_conf_json):
@@ -64,9 +67,6 @@ def get_engine(path_to_sql_conf_json):
 
 args = parser.parse_args()
 
-if len(list(filter(lambda el: el, args.__dict__.values()))) < 3:
-    parser.print_help(sys.stderr)
-    sys.exit(1)
 
 engine = get_engine(args.sql_config_file)
 config = get_vk_config(args.vk_config_file)
@@ -100,6 +100,7 @@ def save_reactions(posts):
         for post in posts:
             add_reaction_in_session(post, session)
         session.commit()
+        
         
 
 if __name__ == "__main__":
