@@ -33,21 +33,21 @@
 }     
 ```
 
-В директории models расположены скрипты для создания таблиц в базе данных  
-`tg_models.py`  для создания таблиц связанных с парером telegram.  
-`vk_models.py` для Vk.  
+В директории models расположен скрипт для создания таблиц в базе данных  
+`create_models.py`  для создания таблиц связанных с парсером.  
 Для создания таблиц нужно запустить скрипт с соответствующими настройками.  
 Пример  
 ```shell
-./venv/bin/python .models/tg_models.py --sql_config_file path_to_sql_config_file
+./venv/bin/python .models/create_models.py --sql_config_file path_to_sql_config_file
 ```  
-```shell
-./venv/bin/python .models/vk_models.py --sql_config_file path_to_sql_config_file
-```  
+У `create_models.py` есть необязательный параметр `--force`. Который позволит скрипту удалить созданные таблицы и создать новые.  
+
 
 После создания таблиц, таблицы `channels_tg` и `groups_vk` заполняются вручную.  
-В channels_tg нужно поместить ссылки на телеграм каналы которые будем парсить.  
-В groups_vk нужно поместить ссылку на группу и id группы.  
+Есть тестовый sql набор `database_fill.sql` там уже есть некоторое количество каналов и групп.  
+
+В `channels_tg` нужно поместить ссылки на телеграм каналы которые будем парсить.  
+В `groups_vk` нужно поместить ссылку на группу и id группы.  
 
 После того как таблицы заполнены, запускаем скрипты `tg_channels_parser.py` и `vk_post_parser.py`.  
 Пример  

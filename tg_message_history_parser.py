@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
-from models.tg_models import Messages_tg, Reactions_tg
+from models.create_models import Messages_tg, Reactions_tg
 from tg_channel_parser import get_telegram_client
 from pdb import set_trace
 from random import shuffle

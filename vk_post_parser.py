@@ -1,7 +1,8 @@
-from models.vk_models import Groups_vk, Posts_vk, Reactions_vk
+from models.create_models import Groups_vk, Posts_vk, Reactions_vk
 import sqlalchemy
 from sqlalchemy import Column, String, Integer, Table, ForeignKey, DateTime, Text, create_engine
 import vk_api
+from vk_api.exceptions import VkToolsException
 from sqlalchemy.orm import Session
 from pdb import set_trace
 from pprint import pprint
@@ -98,17 +99,6 @@ def is_post_todays(post):
         return True
     return False
 
-def get_todays_posts(channel_id):
-    tools = vk_api.VkTools(vk_session)
-    wall = tools.get_all_iter('wall.get', 10, {'owner_id': channel_id})
-    posts = []
-    for post in wall:
-        if is_post_todays(post):
-            posts.append(post)
-            continue
-        break
-        
-    return posts
 
 def add_reaction_in_session(post, sql_session):
     new_reaction = Reactions_vk(
@@ -158,17 +148,21 @@ def is_post_in_database(post):
         return False
 
 def get_last_posts(channel_id, limit=args.limit):
-    
     tools = vk_api.VkTools(vk_session)
-    wall = tools.get_all_iter('wall.get', 10, {'owner_id': channel_id})
     posts = []
-    for post in wall:
-        if is_post_in_database(post) or len(posts)>=limit:
-            break
+    chank_size = 10
+    try:
+        wall = tools.get_all_iter('wall.get', chank_size, {'owner_id': channel_id})
+        for post in wall:
+            if is_post_in_database(post) or len(posts)>=limit:
+                break
+            posts.append(post)
+        
+        return posts
+    except VkToolsException as err:
+        return posts
+        
 
-        posts.append(post)
-        continue
-    return posts
 
 def save_posts(posts:list[dict]) -> None:
     with Session(engine) as session:

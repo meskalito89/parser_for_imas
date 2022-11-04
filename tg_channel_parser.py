@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from models.tg_models import Messages_tg
+from models.create_models import Messages_tg
 from sqlalchemy import create_engine
 from random import shuffle
 from json import loads
@@ -108,14 +108,15 @@ def get_last_messages_from_channel(channel_link, limit=args.limit):
         messages = []
         try:
             iter_messages = client.iter_messages(channel_link, limit=limit)
+            for message in iter_messages:
+                if is_message_in_database(message, channel_link):
+                    break
+                messages.append(message)
+            return messages
         except ValueError('Проверьте, существует ли канал {channel_link}') as err:
+            print(err)
             return messages
 
-        for message in iter_messages:
-            if is_message_in_database(message, channel_link):
-                break
-            messages.append(message)
-        return messages
 
 
 def create_sqlalchemy_object_from_message(message, channel_link):
@@ -139,6 +140,7 @@ def save_messages(chank, channel_link):
 
 if __name__ == "__main__":
     channels = execute_sql_request(args.sql_query)
+    set_trace()
     shuffle(channels)
     for channel in channels:
         last_messages_from_channel = get_last_messages_from_channel(channel.link)
