@@ -1,7 +1,7 @@
 import vk_api
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
-from models.create_models import Posts_vk, Reactions_vk
+from models.create_models import VkPosts, VkReactions
 from pdb import set_trace
 from vk_api.execute import VkFunction
 from vk_api.exceptions import VkToolsException
