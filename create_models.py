@@ -5,39 +5,28 @@ from sqlalchemy.sql import func
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects import mysql
 from pdb import set_trace
-from classes.parser import get_engine
+from configurator import engine, parser
 import argparse
 
-parser = argparse.ArgumentParser(description="""
-    Скрипт создает таблицы для парсинга ВК. Группы, посты, и история постов.
-   groups_vk,  posts_vk, reactions_vk
-""")
+# parser = argparse.ArgumentParser(description="""
+#     Скрипт создает таблицы для парсинга ВК. Группы, посты, и история постов.
+#    groups_vk,  posts_vk, reactions_vk
+# """)
 
-parser.add_argument(
-    "--sql_config_file",
-    help="""Путь к файлу с настройками sql соединения json
-    {
-        "database_type": "mariadb",
-        "server": "192.168.1.4",
-        "port": 3306,
-        "database": "social_network",
-        "username": "username",
-        "password": "password"
-    }
-    """,
-    required=True
-)
-parser.add_argument(
-    '--force',
-    help="""Удаляет таблицы если они существуют, и создать заново""",
-    action='store_true',
-)
-parser.add_argument(
-    '--delete',
-    help="Удалить таблицы.",
-    action='store_true'
-)
 
+# parser.add_argument(
+#     '--force',
+#     help="""Удаляет таблицы если они существуют, и создать заново""",
+#     action='store_true',
+# )
+
+# parser.add_argument(
+#     '--delete',
+#     help="Удалить таблицы.",
+#     action='store_true'
+# )
+
+# args = parser.parse_args()
 Base = declarative_base()
 
 class VkGroups(Base):
@@ -87,21 +76,21 @@ class TgReactions(Base):
     views = Column(Integer)
 
 if __name__ == "__main__":
-    engine = get_engine(args.sql_config_file)
 
-    if args.force:
-        for table in [VkReactions, VkPosts, VkGroups, TgReactions, TgMessages, TgChannels]:
-            try:
-                table.__table__.drop(engine)
-            except OperationalError as error:
-                continue
-    if not args.delete:
-        VkGroups.__table__.create(engine)
-        VkPosts.__table__.create(engine)
-        VkReactions.__table__.create(engine)
+    # set_trace()
+    # if args.force:
+    #     for table in [VkReactions, VkPosts, VkGroups, TgReactions, TgMessages, TgChannels]:
+    #         try:
+    #             table.__table__.drop(engine)
+    #         except OperationalError as error:
+    #             continue
 
-        TgChannels.__table__.create(engine)
-        TgMessages.__table__.create(engine)
-        Reactions_tg.__table__.create(engine)
+    VkGroups.__table__.create(engine)
+    VkPosts.__table__.create(engine)
+    VkReactions.__table__.create(engine)
+
+    TgChannels.__table__.create(engine)
+    TgMessages.__table__.create(engine)
+    TgReactions.__table__.create(engine)
 
 

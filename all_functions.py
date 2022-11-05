@@ -12,48 +12,6 @@ import json
 import argparse
 import sys
 
-parser = argparse.ArgumentParser(description="""Этот парсер просматривает каналы из базы данных
- на наличие новых постов.""")
-parser.add_argument("--sql_query",
-    help="""Запрос для выбора групп. По умолчанию select * from groups_vk;
-    """,
-    default="select * from groups_vk;",
-    )
-parser.add_argument("--vk_config_file",
-    help="""Путь к файлу с токеном, логином и паролем от Вконтакте в формате json
-    пример.\n
-        {
-            "token": "token",
-            "login": "login",
-            "password": "password"
-        }
-    """,
-    required=True
-    )
-parser.add_argument(
-    "--sql_config_file",
-    help="""Путь к файлу с настройками sql соединения json
-    {
-        "database_type": "mariadb",
-        "server": "192.168.1.4",
-        "port": 3306,
-        "database": "social_network",
-        "username": "username",
-        "password": "password"
-    }
-    """,
-    required=True
-)
-parser.add_argument(
-    '--limit',
-    help="""Если в базе нет ни одного поста сканируемой группы, 
-    то limit задает сколько крайних постов нужно сохранить в базу.
-    По умолчанию 10""",
-    type=int,
-    default=10
-)
-
-args = parser.parse_args()
 
 def get_engine(path_to_sql_conf_json):
 
