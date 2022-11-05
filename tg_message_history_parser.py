@@ -112,10 +112,10 @@ def iterate_over_messages_of_links():
 def create_sqlalchemy_Reactions_from_message(message, link):
     message_dict = message.to_dict()
     atrs = dict(
-        message_id = message_dict.get('id'),
+        message_id   = message_dict.get('id'),
         channel_link = link,
-        forward = message_dict.get("forwards"),
-        views = message_dict.get('views')
+        forward      = message_dict.get("forwards"),
+        views        = message_dict.get('views')
     )
     reactions = message_dict.get("reactions")
     if reactions:

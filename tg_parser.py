@@ -59,10 +59,11 @@ parser.add_argument(
 
 args = parser.parse_args()
 
+
 def get_engine(path_to_sql_conf_json):
 
     """Creates database from scratch.
-    sql_conf file should looks like 
+    sql_conf file should looks like
     {
         "database_type": "mariadb",
         "server": "192.168.1.4",
@@ -72,6 +73,7 @@ def get_engine(path_to_sql_conf_json):
         "password": "password"
     }
     """
+
     with open(path_to_sql_conf_json) as sql_conf_file:
         sql_conf = json.loads(sql_conf_file.read())
         url = "{database_type}://{username}:{password}@{server}:{port}/{database}".format(**sql_conf)
@@ -91,6 +93,7 @@ def get_telegram_client(telegram_conf_file:str):
         args = (config.get('username'), config.get('api_id'), config.get('api_hash'))
         client = sync.TelegramClient(*args)
         return client
+
 
 client = get_telegram_client(args.tg_config_file)
 def is_message_in_database(message, channel_link):
@@ -122,11 +125,11 @@ def get_last_messages_from_channel(channel_link, limit=args.limit):
 def create_sqlalchemy_object_from_message(message, channel_link):
     message_dict = message.to_dict()
     sqlalchemy_message = Messages_tg(
-        id = message_dict.get('id'),
-        channel_link = channel_link,
-        pub_date = message_dict.get('date'),
-        edit_date = message_dict.get('edit_date'),
-        message = message_dict.get('message')
+        id=message_dict.get('id'),
+        channel_link=channel_link,
+        pub_date=message_dict.get('date'),
+        edit_date=message_dict.get('edit_date'),
+        message=message_dict.get('message')
     )
     return sqlalchemy_message
 
@@ -140,7 +143,6 @@ def save_messages(chank, channel_link):
 
 if __name__ == "__main__":
     channels = execute_sql_request(args.sql_query)
-    set_trace()
     shuffle(channels)
     for channel in channels:
         last_messages_from_channel = get_last_messages_from_channel(channel.link)
