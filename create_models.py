@@ -5,7 +5,7 @@ from sqlalchemy.sql import func
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects import mysql
 from pdb import set_trace
-from configurator import engine, parser
+from sql_configurator import engine, parser
 import argparse
 
 # parser = argparse.ArgumentParser(description="""
