@@ -20,6 +20,22 @@ from classes.parser import get_engine
 # #     """,
 # #     default="select * from messages_tg;"
 # #     )
+parser.add_argument(
+    '-t',
+    "--tg_config_file",
+    required=True,
+    help="""Путь к файлу с ipi_id, api_hash, username в формате json
+    пример.\n
+    {
+        "api_id": api id,
+        "api_hash": "api hash",
+        "username": "@username"
+    }>
+    """,
+)
+
+tg_client = TelegramClient(*itemgetter('username', 'api_id', 'api_hash')(tg_config))
+tg_config = read_config(args.tg_config_file)
 
 # parser.add_argument(
 #     '-t',

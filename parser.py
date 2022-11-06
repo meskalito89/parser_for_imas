@@ -5,6 +5,11 @@ from random import shuffle
 from vkparser import VkParser
 from tgparser import TgParser
 
+sql_config = read_config(args.sql_config_file)
+engine = get_engine(sql_config)
+sql_session = Session(engine)
+tools = vk_api.VkTools(vk_client)
+
 parser = argparse.ArgumentParser(description="""Этот парсер просматривает каналы из базы данных
  на наличие новых постов.""")
 
@@ -46,8 +51,6 @@ engine = get_engine(args.sql_config_file)
 tg_config = read_config(args.tg_config_file)
 tg_client = TelegramClient(*itemgetter('username', 'api_id', 'api_hash')(tg_config))
 
-vk_config = read_config(args.vk_config_filekj)
-vk_client = vk_api.VkApi(**vk_config)
 
 if __name__ == "__main__":
     with Session(engine) as session:
