@@ -5,28 +5,10 @@ from sqlalchemy.sql import func
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects import mysql
 from pdb import set_trace
-from sql_configurator import engine, parser
+from sql_configurator import engine
 import argparse
 
-# parser = argparse.ArgumentParser(description="""
-#     Скрипт создает таблицы для парсинга ВК. Группы, посты, и история постов.
-#    groups_vk,  posts_vk, reactions_vk
-# """)
 
-
-# parser.add_argument(
-#     '--force',
-#     help="""Удаляет таблицы если они существуют, и создать заново""",
-#     action='store_true',
-# )
-
-# parser.add_argument(
-#     '--delete',
-#     help="Удалить таблицы.",
-#     action='store_true'
-# )
-
-# args = parser.parse_args()
 Base = declarative_base()
 
 class VkGroups(Base):
@@ -42,6 +24,9 @@ class VkPosts(Base):
     from_id = Column(mysql.BIGINT)
     text = Column(Text)
 
+    def __str__(self):
+        return f"tablename: {self.__tablename__}, owner: {self.owner_id}, date: {self.date}, text: {self.text[:15]}..."
+
 class VkReactions(Base):
     __tablename__ = 'vk_reactions'
     id = Column(Integer, primary_key=True)
@@ -52,6 +37,9 @@ class VkReactions(Base):
     reposts = Column(Integer)
     date = Column(DateTime(timezone=True), server_default=func.now())
     views = Column(Integer)
+
+    def __str__(self):
+        return f"tablename: {self.__tablename__}, id: {self.id}, resposts:{self.reposts}, date: {self.date} ..."
 
 class TgChannels(Base):
     __tablename__ = 'tg_channels'
@@ -65,6 +53,9 @@ class TgMessages(Base):
     edit_date = Column(DateTime)
     message = Column(Text)
 
+    def __str__(self):
+        return f"table: {self.__tablename__}, id: {self.id}, channel_link: {self.channel_link}, publication_date: {self.pub_date}, message: {self.message}..."
+
 class TgReactions(Base):
     __tablename__ = 'tg_reactions'
     id = Column(Integer, primary_key=True)
@@ -74,6 +65,9 @@ class TgReactions(Base):
     reactions = Column(JSON)
     forward = Column(Integer)
     views = Column(Integer)
+
+    def __str__(self):
+        return f"table: {self.__tablename__}, id: {self.id}, channel_link: {self.channel_link}, views: {self.views}, parse_date: {self.parse_date} ..."
 
 if __name__ == "__main__":
 

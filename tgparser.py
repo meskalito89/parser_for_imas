@@ -1,48 +1,18 @@
 from create_models import TgChannels, TgMessages, TgReactions
-# from sql_configurator import get_engine, read_config
-# import telethon
-# from operator import itemgetter
-# from telethon.errors.rpcerrorlist import ChannelPrivateError
-# from pdb import set_trace
-# from random import shuffle
+from sqlalchemy.orm import Session
+from sql_configurator import read_config, configs, engine 
+import telethon
+from telethon.sync import TelegramClient
+from operator import itemgetter
+from telethon.errors.rpcerrorlist import ChannelPrivateError
+from pdb import set_trace
+from random import shuffle
 
 
-parser = argparse.ArgumentParser(description="""Parse telegram""")
 
-parser.add_argument(
-    "--sql_config_file",
-    help="""Путь к файлу с настройками sql соединения json
-    {
-        "database_type": "mariadb",
-        "server": "192.168.1.4",
-        "port": 3306,
-        "database": "social_network",
-        "username": "username",
-        "password": "password"
-    }
-    """,
-    required=True
-)
-
-parser.add_argument(
-    '-t',
-    "--tg_config_file",
-    required=True,
-    help="""Путь к файлу с ipi_id, api_hash, username в формате json
-    пример.\n
-    {
-        "api_id": api id,
-        "api_hash": "api hash",
-        "username": "@username"
-    }>
-    """,
-)
-
-args = parser.argparse()
-tg_config = read_config(args.tg_config_file)
-tg_client = telethon.sync.TelegramClient(*itemgetter('username', 'api_id', 'api_hash')(tg_config))
-sql_config = read_config(args.sql_config_file)
-engine = get_engine(sql_config)
+tg_config = read_config(configs.get("tg_conf_file"))
+tg_client = TelegramClient(*itemgetter('username', 'api_id', 'api_hash')(tg_config))
+sql_session = Session(engine)
 
 class TgParser:
     def __init__(self, url: str, *args, **kwargs):
@@ -115,7 +85,7 @@ class TgParser:
         with sql_session:
             sql_session.add(sqlalchemy_obj)
             sql_session.commit()
-            print('saved ', self.url, sqlalchemy_obj.__tablename__)
+            print('saved ', sqlalchemy_obj)
         
     
     def scan_channels_first_time(self):
@@ -143,24 +113,28 @@ class TgParser:
         min_id = min(my_messages, key=lambda m: m.id) 
         max_id = max(my_messages, key=lambda m: m.id) 
         message_iter = tg_client.iter_messages(self.url, min_id=min_id)
+        set_trace()
         with tg_client:
-            count = self.limit
-            while True:
-                try:
-                    message = next(message_iter)
-                except (ChannelPrivateError, TypeError):
-                    break
-                except StopIteration as stop:
-                    break
+            for message in message_iter:
+                print(message)
+            # count = self.limit
+            # while True:
+            #     try:
+            #         message = next(message_iter)
+            #     except (ChannelPrivateError, TypeError) as err:
+            #         print(err)
+            #         break
+            #     except StopIteration as stop:
+            #         break
 
-                message_dict = message.to_dict()
-                tg_message = self.message_dict_to_TgMessages(message_dict)
-                tg_reactions = self.message_dict_to_TgReactions(message_dict)
-                if max_id < tg_message.id:
-                    self.save_to_database(tg_message)
-                self.save_to_database(tg_reactions)
-                if min_id >= tg_message.id:
-                    break
+            #     message_dict = message.to_dict()
+            #     tg_message = self.message_dict_to_TgMessages(message_dict)
+            #     tg_reactions = self.message_dict_to_TgReactions(message_dict)
+            #     if max_id < tg_message.id:
+            #         self.save_to_database(tg_message)
+            #     self.save_to_database(tg_reactions)
+            #     if min_id >= tg_message.id:
+            #         break
 
 
 

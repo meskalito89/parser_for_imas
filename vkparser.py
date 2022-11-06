@@ -1,5 +1,5 @@
 from create_models import VkGroups, VkPosts, VkReactions
-from sql_configurator import parser, get_engine
+from sql_configurator import configs, read_config, engine
 from sqlalchemy.orm import Session
 import vk_api
 from vk_api.exceptions import VkToolsException
@@ -7,26 +7,11 @@ from pdb import set_trace
 from random import shuffle
 
 
-parser.add_argument(
-    '-v',
-    "--vk_config_file",
-    help="""Путь к файлу с токеном, логином и паролем от Вконтакте в формате json
-    пример.\n
-        {
-            "token": "token",
-            "login": "login",
-            "password": "password"
-        }
-    """,
-    required=True
-)
-
-args = parser.parse_args()
-set_trace()
-sql_config = read_config(args.sql_config_file)
-engine = get_engine(sql_config)
-sql_session = Session(engine)
+    
+vk_config = read_config(configs.get('vk_conf_file'))
+vk_client = vk_api.VkApi(**vk_config)
 tools = vk_api.VkTools(vk_client)
+sql_session = Session(engine)
 
 class VkParser:
     def __init__(self, url: str, *args, **kwargs):

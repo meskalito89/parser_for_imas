@@ -1,5 +1,6 @@
 from json import loads
 from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
 
 
 def read_config(path_to_config:str)->dict:
@@ -25,4 +26,10 @@ def get_engine(sql_config):
 
 
 
+with open('conf.json') as file:
+    configs = loads(file.read())
+    path_to_sql_config = configs.get('sql_conf_file')
+    sql_config = read_config(path_to_sql_config)
+    engine = get_engine(sql_config)
+    session = Session(engine)
 

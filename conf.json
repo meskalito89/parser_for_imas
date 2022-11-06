@@ -1,5 +1,5 @@
 {
     "tg_conf_file": "/etc/imas_parser.conf/telegram_bot_conf.json",
     "vk_conf_file": "/etc/imas_parser.conf/vk_bot_conf.json",
-    "sql_conf_file": "/etc/imas_parser.conf/sql_conf_file"
+    "sql_conf_file": "/etc/imas_parser.conf/my_server_database_conf.json"
 }
