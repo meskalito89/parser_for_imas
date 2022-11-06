@@ -1,7 +1,19 @@
-Набор скриптов для парсинга телеграмм каналов и групп вк.
+## Набор скриптов для парсинга телеграмм каналов и групп вк.
 
 Для работы нужны конфигурационные файлы:  
-`sql_config.json`  
+`conf.json`  
+Файл вида  
+
+```json
+{
+    "tg_conf_file": "Путь до файла конфигурации telegram",
+    "vk_conf_file": "Путь до файла конфигурации vk",
+    "sql_conf_file": "Путь до файла конфигурации sql соединения"
+}
+```
+
+
+### Файл sql соединения
 В котором находятся астройки подключения к базе данных.  
 ```json  
     {
@@ -13,6 +25,8 @@
         "password": "password"
     }
 ```
+
+### Файл аутентификации telegram  
 `tg_config.json`  
 С данными авторизации вашего приложения telegram.   
 ```json
@@ -23,6 +37,8 @@
     "username": "@username"
 }
 ```
+
+### Файл аутентификации Vk  
 `vk_conf.json`  
 С данными авторизации Вк  
 ```json
@@ -33,40 +49,24 @@
 }     
 ```
 
-В директории models расположен скрипт для создания таблиц в базе данных  
-`create_models.py`  для создания таблиц связанных с парсером.  
+Файл `create_models.py`  создаст таблицы в базе данных.  
 Для создания таблиц нужно запустить скрипт с соответствующими настройками.  
-Пример  
-```shell
-./venv/bin/python .models/create_models.py --sql_config_file path_to_sql_config_file
-```  
-У `create_models.py` есть необязательный параметр `--force`. Который позволит скрипту удалить созданные таблицы и создать новые.  
 
-
-После создания таблиц, таблицы `channels_tg` и `groups_vk` заполняются вручную.  
+![alt text](stats/telegram_schema.svg "some text")
+После создания таблиц, таблицы `tg_channels` и `vk_groups` заполняются вручную.  
 Есть тестовый sql набор `database_fill.sql` там уже есть некоторое количество каналов и групп.  
 
 В `channels_tg` нужно поместить ссылки на телеграм каналы которые будем парсить.  
 В `groups_vk` нужно поместить ссылку на группу и id группы.  
 
-После того как таблицы заполнены, запускаем скрипты `tg_channels_parser.py` и `vk_post_parser.py`.  
+После того как таблицы заполнены, запускаем скрипты `tgparser.py` и `vkparser.py`.  
 Пример  
 ```shell
-./venv/bin/python .models/tg_channel_parser.py --sql_config_file path_to_sql_config_file --tg_config_file path_to_tg_config_file
+.venv/bin/python tgparser.py
 ``` 
 
 ```shell
-./venv/bin/python .models/vk_post_parser.py --sql_config_file path_to_sql_config_file --vk_config_file path_to_tg_config_file
+.venv/bin/python vkparser.py
 ```  
+
 Если канал парсится впервые то количество постов которые неоходимо собрать можно указать в параметре  
-`--limit`  
-По умолчанию 10  
-Если с канала или группы посты уже собирались, то скрипт будет собирать данные пока не наткнется на пост который уже есть в базе.  
-
-Так-же у скрипта `tg_channel_parser.py` есть параметр `--sql_query`, который позволяет указать в виде sql запроса с какими каналами работает скрипт. По умолчанию `select * from channels_tg;`   
-
-Для того чтобы отслеживать историю реакций (лайки, просмотры, репосты и т.д.) постов которые уже есть в базе, нужно запустить скрипты `tg_message_history_parser.py` и `vk_post_history_parser.py`  
-Пример  
-```shell
-./venv/bin/python .models/tg_essage_history_parser.py --sql_config_file path_to_sql_config_file --tg_config_file path_to_tg_config_file
-```  

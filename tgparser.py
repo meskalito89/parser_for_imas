@@ -70,7 +70,7 @@ class TgParser:
         with sql_session:
             messges = self.get_messages_from_database_filtered_by_url()
             exist = sql_session.query(
-                TgMessages.id, TgMessages.channel_link).filter_by(channel_link=message.get(''), id=message.get("id")
+                TgMessages.id, TgMessages.channel_link).filter_by(channel_link=self.url, id=message.get("id")
                 ).all()
             if exist:
                 return True
@@ -106,36 +106,35 @@ class TgParser:
 
     def start(self):
         my_messages = self.get_messages_from_database_filtered_by_url()
+        set_trace()
         if not my_messages:
             self.scan_channels_first_time()
             return
 
-        min_id = min(my_messages, key=lambda m: m.id) 
-        max_id = max(my_messages, key=lambda m: m.id) 
-        message_iter = tg_client.iter_messages(self.url, min_id=min_id)
-        set_trace()
+        message_iter = tg_client.iter_messages(self.url)
         with tg_client:
-            for message in message_iter:
-                print(message)
-            # count = self.limit
-            # while True:
-            #     try:
-            #         message = next(message_iter)
-            #     except (ChannelPrivateError, TypeError) as err:
-            #         print(err)
-            #         break
-            #     except StopIteration as stop:
-            #         break
+            count = 0
+            while True:
+                try:
+                    message = next(message_iter)
+                except (ChannelPrivateError, TypeError) as err:
+                    print(err)
+                    break
+                except StopIteration as stop:
+                    break
 
-            #     message_dict = message.to_dict()
-            #     tg_message = self.message_dict_to_TgMessages(message_dict)
-            #     tg_reactions = self.message_dict_to_TgReactions(message_dict)
-            #     if max_id < tg_message.id:
-            #         self.save_to_database(tg_message)
-            #     self.save_to_database(tg_reactions)
-            #     if min_id >= tg_message.id:
-            #         break
-
+                message_dict = message.to_dict()
+                tg_message = self.message_dict_to_TgMessages(message_dict)
+                tg_reactions = self.message_dict_to_TgReactions(message_dict)
+                if self.is_message_in_database(message_dict):
+                    self.save_to_database(tg_reactions)
+                    count += 1
+                else:
+                    if count > 0:
+                        break
+                    else:
+                        self.save_to_database(tg_message)
+                        self.save_to_database(tg_reactions)
 
 
 if __name__ == "__main__":
